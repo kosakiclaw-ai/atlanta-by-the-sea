@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Atlanta by the Sea</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+  <!-- Supabase JS v2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <!-- jsPDF + autoTable for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    :root {
+      --ink:          #1C1917;
+      --ink-light:    #272320;
+      --ink-muted:    #3A342F;
+      --cream:        #FAF7F2;
+      --warm:         #F2EDE4;
+      --terra:        #C4623A;
+      --terra-light:  #D4754D;
+      --terra-dark:   #A5512F;
+      --green:        #3D8A50;
+      --red:          #C45A5A;
+      --text:         #2C2420;
+      --text-body:    #4A3F38;
+      --text-muted:   #8A7A72;
+      --border:       #E0D5C8;
+      --border-light: #EDE8E0;
+      --card:         #FFFFFF;
+      --sh-sm:        0 1px 4px rgba(44,36,32,.08);
+      --sh-md:        0 4px 16px rgba(44,36,32,.12);
+      --sh-lg:        0 8px 32px rgba(44,36,32,.18);
+      --r:            12px;
+      --r-sm:         8px;
+      --nav-h:        62px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); line-height: 1.6; min-height: 100vh; }
+    h1, h2, h3, h4 { font-family: 'Playfair Display', serif; line-height: 1.3; }
+    button { font-family: inherit; cursor: pointer; }
+    input, select, textarea { font-family: inherit; }
+
+    /* LOGIN */
+    #login-screen { position: fixed; inset: 0; background: var(--ink); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 24px; }
+    .login-card { background: var(--ink-light); border: 1px solid rgba(255,255,255,.08); border-radius: 20px; padding: 52px 44px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 24px 64px rgba(0,0,0,.55); }
+    .login-logo { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: var(--cream); margin-bottom: 4px; letter-spacing: -.5px; }
+    .login-logo span { color: var(--terra); }
+    .login-sub { font-size: .8rem; color: rgba(250,247,242,.4); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 40px; }
+    .login-form { display: flex; flex-direction: column; gap: 14px; }
+    .login-form input { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12); border-radius: 10px; padding: 14px 18px; color: var(--cream); font-size: 1rem; text-align: center; letter-spacing: .2em; outline: none; transition: border-color .2s, background .2s; }
+    .login-form input::placeholder { letter-spacing: .05em; color: rgba(250,247,242,.3); }
+    .login-form input:focus { border-color: var(--terra); background: rgba(255,255,255,.11); }
+    .login-btn { background: var(--terra); color: #fff; border: none; border-radius: 10px; padding: 14px; font-size: 1rem; font-weight: 600; letter-spacing: .02em; transition: background .2s, transform .1s; }
+    .login-btn:hover  { background: var(--terra-light); }
+    .login-btn:active { transform: scale(.98); }
+    .login-error { color: #E07070; font-size: .875rem; min-height: 20px; }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)} }
+
+    /* SETUP BANNER */
+    #setup-banner { background: var(--ink-muted); color: rgba(250,247,242,.85); font-size: .82rem; padding: 10px 24px; display: none; align-items: center; gap: 10px; }
+    #setup-banner.show { display: flex; }
+    #setup-banner strong { color: var(--terra); }
+    #setup-banner code { background: rgba(0,0,0,.3); padding: 2px 7px; border-radius: 4px; font-size: .8rem; }
+
+    /* NAV */
+    #app { display: none; min-height: 100vh; }
+    #app.visible { display: block; }
+    .nav { position: sticky; top: 0; z-index: 100; background: var(--ink); height: var(--nav-h); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; gap: 16px; box-shadow: 0 2px 16px rgba(0,0,0,.35); }
+    .nav-brand { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--cream); white-space: nowrap; flex-shrink: 0; }
+    .nav-brand span { color: var(--terra); }
+    .nav-tabs { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+    .nav-tabs::-webkit-scrollbar { display: none; }
+    .nav-tab { background: none; border: none; color: rgba(250,247,242,.55); font-size: .85rem; font-weight: 500; padding: 8px 13px; border-radius: 8px; white-space: nowrap; transition: color .2s, background .2s; }
+    .nav-tab:hover  { color: var(--cream); background: rgba(255,255,255,.07); }
+    .nav-tab.active { color: #fff; background: var(--terra); }
+    .nav-tab.hidden { display: none; }
+    .nav-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .nav-role-badge { font-size: .72rem; font-weight: 600; padding: 4px 10px; border-radius: 20px; background: rgba(196,98,58,.25); color: var(--terra); white-space: nowrap; }
+    .nav-logout { background: none; color: rgba(250,247,242,.5); border: 1px solid rgba(255,255,255,.18); font-size: .78rem; padding: 6px 12px; border-radius: 7px; white-space: nowrap; transition: color .2s, border-color .2s; }
+    .nav-logout:hover { color: var(--cream); border-color: rgba(255,255,255,.4); }
+
+    /* LAYOUT */
+    .main { padding: 36px 24px; max-width: 1100px; margin: 0 auto; }
+    .section { display: none; }
+    .section.active { display: block; }
+    .sec-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 28px; }
+    .sec-title { font-size: 2rem; color: var(--text); }
+    .sec-title span { color: var(--terra); }
+    .sec-hint { margin-top: -12px; margin-bottom: 24px; font-size: .88rem; color: var(--text-muted); border-left: 3px solid var(--terra); padding-left: 12px; }
+
+    /* BUTTONS */
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; border: none; border-radius: var(--r-sm); font-size: .875rem; font-weight: 500; transition: background .2s, transform .15s, box-shadow .2s; }
+    .btn-primary { background: var(--terra); color: #fff; }
+    .btn-primary:hover { background: var(--terra-light); transform: translateY(-1px); box-shadow: var(--sh-sm); }
+    .btn-secondary { background: var(--warm); color: var(--text-body); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--border-light); }
+    .btn-sm { padding: 5px 11px; font-size: .78rem; }
+    .icon-btn { display: inline-flex; align-items: center; justify-content: center; background: none; border: none; padding: 6px; border-radius: 7px; transition: background .2s; }
+    .icon-btn:hover { background: var(--border-light); }
+
+    /* CARD */
+    .card { background: var(--card); border-radius: var(--r); padding: 24px; box-shadow: var(--sh-sm); border: 1px solid var(--border-light); }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+
+    /* BADGES */
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: .72rem; font-weight: 600; letter-spacing: .04em; }
+    .badge-ns   { background: rgba(138,122,114,.12); color: var(--text-muted); }
+    .badge-ip   { background: rgba(196,98,58,.12);   color: var(--terra); }
+    .badge-done { background: rgba(61,138,80,.12);    color: var(--green); }
+    .badge-owed { background: rgba(196,90,90,.12);    color: var(--red); }
+    .badge-paid { background: rgba(61,138,80,.12);    color: var(--green); }
+
+    /* PROGRESS */
+    .prog-track { height: 6px; background: var(--border-light); border-radius: 3px; overflow: hidden; margin: 12px 0 6px; }
+    .prog-fill  { height: 100%; background: var(--terra); border-radius: 3px; transition: width .5s ease; }
+
+    /* ROOMS */
+    .room-head  { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 10px; }
+    .room-name  { font-family: 'Playfair Display', serif; font-size: 1.15rem; }
+    .room-acts  { display: flex; gap: 2px; flex-shrink: 0; }
+    .room-pct   { display: flex; justify-content: space-between; font-size: .78rem; color: var(--text-muted); }
+    .room-notes { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-light); font-size: .85rem; color: var(--text-muted); }
+
+    /* CHECKLIST */
+    .group { margin-bottom: 28px; }
+    .group-head { display: flex; align-items: center; justify-content: space-between; font-family: 'Playfair Display', serif; font-size: 1.05rem; padding-bottom: 8px; margin-bottom: 10px; border-bottom: 2px solid var(--terra); }
+    .group-count { font-family: 'DM Sans', sans-serif; font-size: .78rem; font-weight: 500; color: var(--text-muted); }
+    .check-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--card); border: 1px solid var(--border-light); border-radius: var(--r-sm); margin-bottom: 7px; transition: background .15s; }
+    .check-row:hover { background: var(--warm); }
+    .check-row.done { opacity: .55; }
+    .check-row.done .check-label { text-decoration: line-through; color: var(--text-muted); }
+    .check-circle { width: 22px; height: 22px; flex-shrink: 0; border-radius: 50%; border: 2px solid var(--border); background: none; display: flex; align-items: center; justify-content: center; transition: background .2s, border-color .2s; cursor: pointer; }
+    .check-circle.sq { border-radius: 5px; }
+    .check-circle.on { background: var(--terra); border-color: var(--terra); }
+    .check-label { flex: 1; font-size: .9rem; }
+    .check-sub   { font-size: .78rem; color: var(--text-muted); white-space: nowrap; }
+
+    /* TABLE */
+    .tbl-wrap { background: var(--card); border-radius: var(--r); border: 1px solid var(--border-light); overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th { background: var(--warm); padding: 11px 16px; text-align: left; font-size: .76rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--border); }
+    tbody td { padding: 11px 16px; border-bottom: 1px solid var(--border-light); font-size: .88rem; color: var(--text-body); }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: var(--warm); }
+    .td-actions { display: flex; gap: 4px; align-items: center; white-space: nowrap; }
+
+    /* TEAM CARDS */
+    .team-cards { display: flex; flex-direction: column; gap: 28px; }
+    .team-card { background: var(--card); border-radius: var(--r); border: 1px solid var(--border-light); box-shadow: var(--sh-md); overflow: hidden; }
+    .team-card-head { background: var(--ink); padding: 22px 26px; display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+    .team-card-name { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--cream); margin-bottom: 8px; }
+    .team-card-stats { display: flex; align-items: baseline; gap: 20px; flex-wrap: wrap; }
+    .tc-hours { font-size: 2.2rem; font-weight: 700; color: var(--terra); line-height: 1; }
+    .tc-hours-lbl { font-size: .72rem; color: rgba(250,247,242,.45); margin-left: 4px; }
+    .tc-rate  { font-size: .82rem; color: rgba(250,247,242,.5); }
+    .tc-owed  { font-size: .9rem; font-weight: 600; color: rgba(250,247,242,.9); background: rgba(196,98,58,.2); border: 1px solid rgba(196,98,58,.35); padding: 3px 10px; border-radius: 20px; }
+    .team-card-btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-start; }
+    .team-card-btns .btn-secondary { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.2); color: var(--cream); }
+    .team-card-btns .btn-secondary:hover { background: rgba(255,255,255,.18); }
+    .team-history { overflow-x: auto; }
+    .team-no-entries { text-align: center; padding: 28px; color: var(--text-muted); font-size: .88rem; font-style: italic; }
+
+    /* PAYMENTS */
+    .pay-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+    .pay-card { background: var(--card); border-radius: var(--r); border: 1px solid var(--border-light); box-shadow: var(--sh-sm); padding: 24px; text-align: center; }
+    .pay-card-lbl { font-size: .76rem; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); margin-bottom: 8px; }
+    .pay-card-amt { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; }
+    .pay-owed { color: var(--red); }
+    .pay-paid { color: var(--green); }
+
+    /* PHOTOS */
+    .upload-zone { border: 2px dashed var(--border); border-radius: var(--r); padding: 36px 24px; text-align: center; cursor: pointer; background: var(--card); transition: border-color .2s, background .2s; margin-bottom: 16px; }
+    .upload-zone:hover, .upload-zone.drag-over { border-color: var(--terra); background: rgba(196,98,58,.04); }
+    .upload-icon { font-size: 2.2rem; color: var(--text-muted); margin-bottom: 8px; }
+    .upload-text { font-size: .88rem; color: var(--text-muted); }
+    .upload-text strong { color: var(--terra); }
+    .photo-controls { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; flex-wrap: wrap; }
+    .photo-controls label { font-size: .85rem; font-weight: 500; color: var(--text-body); white-space: nowrap; }
+    .photos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px; }
+    .photo-card { position: relative; border-radius: var(--r); overflow: hidden; aspect-ratio: 4/3; background: var(--warm); border: 1px solid var(--border-light); }
+    .photo-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .photo-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(28,25,23,.82)); padding: 10px 12px 9px; display: flex; align-items: flex-end; justify-content: space-between; }
+    .photo-room { font-size: .78rem; font-weight: 600; color: var(--cream); }
+    .photo-date { font-size: .68rem; color: rgba(250,247,242,.65); }
+    .photo-del { background: rgba(196,90,90,.85); border: none; color: #fff; width: 26px; height: 26px; border-radius: 50%; font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: background .2s; flex-shrink: 0; }
+    .photo-del:hover { background: var(--red); }
+
+    /* MODAL */
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(28,25,23,.65); z-index: 500; align-items: center; justify-content: center; padding: 24px; backdrop-filter: blur(3px); }
+    .overlay.open { display: flex; }
+    .modal { background: var(--card); border-radius: 16px; padding: 32px; width: 100%; max-width: 490px; box-shadow: var(--sh-lg); max-height: 92vh; overflow-y: auto; }
+    .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .modal-title { font-family: 'Playfair Display', serif; font-size: 1.4rem; }
+    .modal-x { background: none; border: none; font-size: 1.6rem; color: var(--text-muted); padding: 2px 6px; border-radius: 5px; line-height: 1; transition: background .2s; }
+    .modal-x:hover { background: var(--warm); }
+
+    /* FORMS */
+    .fg { margin-bottom: 18px; }
+    .fg label { display: block; font-size: .82rem; font-weight: 500; color: var(--text-body); margin-bottom: 5px; }
+    .fg input, .fg select, .fg textarea { width: 100%; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: var(--r-sm); font-size: .9rem; color: var(--text); background: var(--cream); outline: none; transition: border-color .2s, box-shadow .2s; }
+    .fg input:focus, .fg select:focus, .fg textarea:focus { border-color: var(--terra); box-shadow: 0 0 0 3px rgba(196,98,58,.11); }
+    .fg textarea { resize: vertical; min-height: 80px; }
+    .fg-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-foot { display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px; }
+
+    /* LOADING */
+    #loading { position: fixed; inset: 0; background: rgba(28,25,23,.45); z-index: 800; display: none; align-items: center; justify-content: center; }
+    #loading.show { display: flex; }
+    .spinner { width: 40px; height: 40px; border: 3px solid rgba(250,247,242,.2); border-top-color: var(--terra); border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* TOAST */
+    #toast { position: fixed; bottom: 22px; right: 22px; background: var(--ink); color: var(--cream); padding: 11px 20px; border-radius: 10px; font-size: .85rem; box-shadow: var(--sh-lg); z-index: 900; max-width: 320px; transform: translateY(80px); opacity: 0; transition: transform .3s ease, opacity .3s ease; pointer-events: none; }
+    #toast.show { transform: translateY(0); opacity: 1; }
+
+    /* EMPTY */
+    .empty { text-align: center; padding: 64px 24px; color: var(--text-muted); grid-column: 1 / -1; }
+    .empty-icon { font-size: 3rem; margin-bottom: 14px; opacity: .45; }
+    .empty h3 { font-family: 'Playfair Display', serif; font-size: 1.2rem; margin-bottom: 6px; color: var(--text-body); }
+    .empty p  { font-size: .85rem; }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: var(--border-light); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+    /* RESPONSIVE */
+    @media (max-width: 700px) {
+      .nav { padding: 0 14px; gap: 10px; }
+      .nav-brand { font-size: 1.1rem; }
+      .nav-tab { padding: 7px 9px; font-size: .78rem; }
+      .main { padding: 22px 14px; }
+      .sec-title { font-size: 1.55rem; }
+      .grid-3 { grid-template-columns: 1fr; }
+      .fg-row { grid-template-columns: 1fr; }
+      .pay-summary { grid-template-columns: 1fr 1fr; }
+      .pay-card-amt { font-size: 1.5rem; }
+      .photos-grid { grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); }
+      .modal { padding: 22px; }
+      .team-card-head { flex-direction: column; }
+    }
+    @media (max-width: 440px) {
+      .pay-summary { grid-template-columns: 1fr; }
+      .nav-right .nav-role-badge { display: none; }
+    }
+    .ico { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; pointer-events:none; }
+    .chk-svg { width:11px; height:11px; fill:none; stroke:#fff; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
+  </style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-card" id="login-card">
+    <div class="login-logo">Atlanta by the <span>Sea</span></div>
+    <div class="login-sub">Renovation Management</div>
+    <form class="login-form" id="login-form" autocomplete="off">
+      <input type="password" id="login-pw" placeholder="Enter password" autocomplete="current-password">
+      <div class="login-error" id="login-err"></div>
+      <button type="submit" class="login-btn">Enter &rarr;</button>
+    </form>
+  </div>
+</div>
+
+<div id="app">
+  <div id="setup-banner">
+    <span>⚙️</span>
+    <span><strong>Supabase not connected</strong> — data is stored locally in this browser.
+    Open <code>index.html</code> and set <code>SUPABASE_URL</code> + <code>SUPABASE_KEY</code> to sync across devices.</span>
+  </div>
+  <nav class="nav">
+    <div class="nav-brand">Atlanta by the <span>Sea</span></div>
+    <div class="nav-tabs" id="nav-tabs">
+      <button class="nav-tab active" data-sec="rooms">Rooms</button>
+      <button class="nav-tab" data-sec="tasks">Tasks</button>
+      <button class="nav-tab" data-sec="workers">Team</button>
+      <button class="nav-tab" data-sec="payments">Payments</button>
+      <button class="nav-tab" data-sec="materials">Materials</button>
+      <button class="nav-tab" data-sec="photos">Photos</button>
+    </div>
+    <div class="nav-right">
+      <span class="nav-role-badge" id="role-badge"></span>
+      <button class="nav-logout" id="logout-btn">Logout</button>
+    </div>
+  </nav>
+  <main class="main">
+
+    <section id="sec-rooms" class="section active">
+      <div class="sec-header">
+        <h1 class="sec-title">Rooms <span>&amp; Areas</span></h1>
+        <button class="btn btn-primary" id="add-room-btn">
+          <svg class="ico" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Room
+        </button>
+      </div>
+      <div class="grid-3" id="rooms-grid"></div>
+    </section>
+
+    <section id="sec-tasks" class="section">
+      <div class="sec-header">
+        <h1 class="sec-title">Tasks <span>&amp; Checklist</span></h1>
+        <button class="btn btn-primary" id="add-task-btn">
+          <svg class="ico" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Task
+        </button>
+      </div>
+      <div id="tasks-wrap"></div>
+    </section>
+
+    <section id="sec-workers" class="section">
+      <div class="sec-header">
+        <h1 class="sec-title">Team <span>&amp; Hours</span></h1>
+      </div>
+      <p class="sec-hint" id="team-hint">Hours are logged per week. Add one entry per person per week.</p>
+      <div class="team-cards" id="team-cards"></div>
+    </section>
+
+    <section id="sec-payments" class="section">
+      <div class="sec-header">
+        <h1 class="sec-title">Payments <span>&amp; Budget</span></h1>
+        <button class="btn btn-primary" id="add-pay-btn">
+          <svg class="ico" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Payment
+        </button>
+      </div>
+      <div class="pay-summary" id="pay-summary"></div>
+      <div class="tbl-wrap" id="pay-tbl"></div>
+    </section>
+
+    <section id="sec-materials" class="section">
+      <div class="sec-header">
+        <h1 class="sec-title">Materials <span>&amp; Shopping</span></h1>
+        <button class="btn btn-primary" id="add-mat-btn">
+          <svg class="ico" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Item
+        </button>
+      </div>
+      <div id="mats-wrap"></div>
+    </section>
+
+    <section id="sec-photos" class="section">
+      <div class="sec-header">
+        <h1 class="sec-title">Photo <span>Log</span></h1>
+      </div>
+      <div class="upload-zone" id="upload-zone">
+        <div class="upload-icon">📷</div>
+        <div class="upload-text"><strong>Click to upload photos</strong> &mdash; or drag &amp; drop here</div>
+        <input type="file" id="photo-input" multiple accept="image/*" style="display:none">
+      </div>
+      <div class="photo-controls">
+        <label for="photo-room-sel">Room label:</label>
+        <select id="photo-room-sel" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--cream);font-size:.88rem;color:var(--text);outline:none;min-width:200px">
+          <option value="">— No room label —</option>
+        </select>
+      </div>
+      <div class="photos-grid" id="photos-grid"></div>
+    </section>
+
+  </main>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal">
+    <div class="modal-head">
+      <h2 class="modal-title" id="modal-title">Add Item</h2>
+      <button class="modal-x" id="modal-x">&times;</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div id="loading"><div class="spinner"></div></div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+/* ════════════════════════════════════════════════════════════
+   ⚙️  CONFIGURATION
+   ════════════════════════════════════════════════════════════ */
+
+const SUPABASE_URL = 'https://mfvwgoekaqsjzelmkkdq.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mdndnb2VrYXFzanplbG1ra2RxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMDE1NzgsImV4cCI6MjA4OTU3NzU3OH0.6Ps09HOl5aHqnI9aknRBJ_r9j8SB5YypHqPD0R4i9uE';
+
+const MASTER_PASS = 'casa2026';
+
+const TEAM = {
+  andrew:   { displayName: 'Andrew',   password: 'andrew2024',   rate: 25 },
+  mohammed: { displayName: 'Mohammed', password: 'mohammed2024', rate: 25 },
+};
+
+/* ════════════════════════════════════════════════════════════ */
+
+const USE_DB = SUPABASE_URL !== 'YOUR_SUPABASE_URL';
+const db = USE_DB ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+const LS = { rooms:'ct_rooms', tasks:'ct_tasks', team_entries:'ct_workers',
+             payments:'ct_payments', materials:'ct_mats', photos:'ct_photos' };
+
+function fromDB(row) {
+  if (!row) return row;
+  const r = { ...row };
+  if ('room_id'  in r) { r.roomId  = r.room_id;  delete r.room_id; }
+  if ('data_url' in r) { r.dataUrl = r.data_url; delete r.data_url; }
+  return r;
+}
+function toDB(row) {
+  const r = { ...row };
+  if ('roomId'  in r) { r.room_id  = r.roomId;  delete r.roomId; }
+  if ('dataUrl' in r) { r.data_url = r.dataUrl; delete r.dataUrl; }
+  return r;
+}
+
+async function dbLoad(table) {
+  if (db) {
+    const { data, error } = await db.from(table).select('*');
+    if (error) { console.error('Load error:', table, error); return []; }
+    return (data || []).map(fromDB);
+  }
+  try { return JSON.parse(localStorage.getItem(LS[table])) || []; } catch { return []; }
+}
+async function dbInsert(table, row) {
+  if (db) {
+    const { error } = await db.from(table).insert(toDB(row));
+    if (error) throw error;
+  } else {
+    const rows = await dbLoad(table); rows.push(row);
+    localStorage.setItem(LS[table], JSON.stringify(rows));
+  }
+}
+async function dbUpdate(table, id, updates) {
+  if (db) {
+    const { error } = await db.from(table).update(toDB(updates)).eq('id', id);
+    if (error) throw error;
+  } else {
+    const rows = await dbLoad(table);
+    const i = rows.findIndex(r => r.id === id);
+    if (i > -1) { Object.assign(rows[i], updates); localStorage.setItem(LS[table], JSON.stringify(rows)); }
+  }
+}
+async function dbDelete(table, id) {
+  if (db) {
+    const { error } = await db.from(table).delete().eq('id', id);
+    if (error) throw error;
+  } else {
+    const rows = (await dbLoad(table)).filter(r => r.id !== id);
+    localStorage.setItem(LS[table], JSON.stringify(rows));
+  }
+}
+async function dbDeleteWhere(table, field, value) {
+  if (db) {
+    const dbField = field === 'roomId' ? 'room_id' : field;
+    const { error } = await db.from(table).delete().eq(dbField, value);
+    if (error) throw error;
+  } else {
+    const rows = (await dbLoad(table)).filter(r => r[field] !== value);
+    localStorage.setItem(LS[table], JSON.stringify(rows));
+  }
+}
+
+const uid     = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+const esc     = s  => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+const money   = n  => '€' + parseFloat(n||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+const fmtDate = s  => { try { return new Date(s+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); } catch { return s||''; } };
+const fmtWeek = s  => { if (!s||!s.includes('-W')) return s||''; const [y,w]=s.split('-W'); return `Wk ${parseInt(w)}, ${y}`; };
+const isoWeek = d  => { const u=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())); u.setUTCDate(u.getUTCDate()+4-(u.getUTCDay()||7)); const y0=new Date(Date.UTC(u.getUTCFullYear(),0,1)); return Math.ceil((((u-y0)/86400000)+1)/7); };
+
+const ICO = {
+  edit:  `<svg class="ico" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`,
+  trash: `<svg class="ico" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`,
+  chk:   `<svg class="chk-svg" viewBox="0 0 12 10"><polyline points="1.5 5.5 4.5 8.5 10.5 1.5"/></svg>`,
+  pdf:   `<svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`
+};
+
+let loadingN = 0;
+const showLoad = () => { if (++loadingN > 0) document.getElementById('loading').classList.add('show'); };
+const hideLoad = () => { if (--loadingN <= 0) { loadingN=0; document.getElementById('loading').classList.remove('show'); } };
+async function run(fn) {
+  showLoad();
+  try { await fn(); }
+  catch(e) { console.error(e); toast('Error: ' + (e.message || 'Something went wrong.')); }
+  finally { hideLoad(); }
+}
+
+let toastT;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => el.classList.remove('show'), 3200);
+}
+
+/* ── AUTH ── */
+const SESS_KEY = 'ct_sess_role';
+function getRole()   { return localStorage.getItem(SESS_KEY); }
+function isMaster()  { return getRole() === 'master'; }
+function myTeamKey() { return isMaster() ? null : getRole(); }
+function myName()    { const k=myTeamKey(); return k ? TEAM[k].displayName : null; }
+
+function roleFromPassword(pw) {
+  if (pw === MASTER_PASS) return 'master';
+  for (const [key, cfg] of Object.entries(TEAM)) { if (pw === cfg.password) return key; }
+  return null;
+}
+
+document.getElementById('login-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const pw = document.getElementById('login-pw').value;
+  const role = roleFromPassword(pw);
+  if (role) {
+    localStorage.setItem(SESS_KEY, role);
+    showApp();
+  } else {
+    document.getElementById('login-err').textContent = 'Incorrect password. Please try again.';
+    document.getElementById('login-pw').value = '';
+    document.getElementById('login-pw').focus();
+    const c = document.getElementById('login-card');
+    c.style.animation = 'none';
+    requestAnimationFrame(() => requestAnimationFrame(() => { c.style.animation = 'shake .4s ease'; }));
+  }
+});
+
+document.getElementById('logout-btn').addEventListener('click', () => {
+  localStorage.removeItem(SESS_KEY);
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-pw').value = '';
+  document.getElementById('login-err').textContent = '';
+});
+
+function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').classList.add('visible');
+  applyRoleUI();
+  run(renderAll);
+}
+
+function applyRoleUI() {
+  const role   = getRole();
+  const master = role === 'master';
+  document.getElementById('role-badge').textContent = master ? 'Master' : (TEAM[role]?.displayName || role);
+  document.querySelectorAll('.nav-tab').forEach(tab => {
+    const sec = tab.dataset.sec;
+    tab.classList.toggle('hidden', !master && !['workers','payments'].includes(sec));
+  });
+  if (!master) {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelector('[data-sec="workers"]').classList.add('active');
+    document.getElementById('sec-workers').classList.add('active');
+  }
+  document.getElementById('team-hint').style.display    = master ? '' : 'none';
+  document.getElementById('add-pay-btn').style.display  = master ? '' : 'none';
+  document.getElementById('setup-banner').classList.toggle('show', master && !USE_DB);
+}
+
+document.getElementById('nav-tabs').addEventListener('click', e => {
+  const tab = e.target.closest('.nav-tab');
+  if (!tab) return;
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  tab.classList.add('active');
+  document.getElementById('sec-' + tab.dataset.sec).classList.add('active');
+});
+
+/* ── MODAL ── */
+let modalCb = null;
+function openModal(title, body, cb) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').innerHTML = body;
+  modalCb = cb;
+  document.getElementById('overlay').classList.add('open');
+  setTimeout(() => { const f = document.querySelector('#modal input:not([readonly]), #modal select, #modal textarea'); if (f) f.focus(); }, 80);
+}
+function closeModal() { document.getElementById('overlay').classList.remove('open'); modalCb = null; }
+document.getElementById('modal-x').addEventListener('click', closeModal);
+document.getElementById('overlay').addEventListener('click', e => { if (e.target.id === 'overlay') closeModal(); });
+document.getElementById('modal-body').addEventListener('click', e => {
+  if (e.target.classList.contains('do-submit') && modalCb) modalCb();
+  if (e.target.classList.contains('do-cancel')) closeModal();
+});
+
+/* ════════════════════════════════════════════════════════════
+   ROOMS
+   ════════════════════════════════════════════════════════════ */
+async function renderRooms() {
+  const rooms = await dbLoad('rooms');
+  const grid  = document.getElementById('rooms-grid');
+  if (!rooms.length) { grid.innerHTML = `<div class="empty"><div class="empty-icon">🏠</div><h3>No rooms yet</h3><p>Add your first room or area to get started.</p></div>`; return; }
+  const sm = { 'Not Started':'badge-ns', 'In Progress':'badge-ip', 'Done':'badge-done' };
+  grid.innerHTML = rooms.map(r => `
+    <div class="card">
+      <div class="room-head">
+        <div>
+          <div class="room-name">${esc(r.name)}</div>
+          <span class="badge ${sm[r.status]||'badge-ns'}" style="margin-top:6px;display:inline-block">${esc(r.status)}</span>
+        </div>
+        <div class="room-acts">
+          <button class="icon-btn edit-room" data-id="${esc(r.id)}">${ICO.edit}</button>
+          <button class="icon-btn del-room"  data-id="${esc(r.id)}" style="color:var(--red)">${ICO.trash}</button>
+        </div>
+      </div>
+      <div class="prog-track"><div class="prog-fill" style="width:${r.progress||0}%"></div></div>
+      <div class="room-pct"><span>Progress</span><span>${r.progress||0}%</span></div>
+      ${r.notes ? `<div class="room-notes">${esc(r.notes)}</div>` : ''}
+    </div>`).join('');
+}
+
+document.getElementById('add-room-btn').addEventListener('click', () => roomModal());
+
+function roomModal(room) {
+  const ed = !!room;
+  openModal(ed ? 'Edit Room' : 'Add Room', `
+    <div class="fg"><label>Room / Area Name *</label><input id="rm-name" type="text" placeholder="e.g. Kitchen, Master Bedroom…" value="${ed?esc(room.name):''}"></div>
+    <div class="fg-row">
+      <div class="fg"><label>Status</label><select id="rm-status">
+        <option ${!ed||room.status==='Not Started'?'selected':''}>Not Started</option>
+        <option ${ed&&room.status==='In Progress'?'selected':''}>In Progress</option>
+        <option ${ed&&room.status==='Done'?'selected':''}>Done</option>
+      </select></div>
+      <div class="fg"><label>Progress %</label><input id="rm-prog" type="number" min="0" max="100" value="${ed?room.progress:0}"></div>
+    </div>
+    <div class="fg"><label>Notes</label><textarea id="rm-notes" placeholder="Any notes…">${ed?esc(room.notes||''):''}</textarea></div>
+    <div class="form-foot"><button class="btn btn-secondary do-cancel">Cancel</button><button class="btn btn-primary do-submit">${ed?'Save Changes':'Add Room'}</button></div>
+  `, () => run(async () => {
+    const name = document.getElementById('rm-name').value.trim();
+    if (!name) { toast('Please enter a room name.'); return; }
+    const entry = { id:ed?room.id:uid(), name, status:document.getElementById('rm-status').value, progress:Math.min(100,Math.max(0,parseInt(document.getElementById('rm-prog').value)||0)), notes:document.getElementById('rm-notes').value.trim() };
+    if (ed) await dbUpdate('rooms', room.id, entry); else await dbInsert('rooms', entry);
+    await renderRooms(); syncRoomSelects(); closeModal(); toast(ed?'Room updated!':'Room added!');
+  }));
+}
+
+document.getElementById('rooms-grid').addEventListener('click', async e => {
+  const ed  = e.target.closest('.edit-room');
+  const del = e.target.closest('.del-room');
+  if (ed)  { run(async () => { const rooms = await dbLoad('rooms'); const r = rooms.find(x=>x.id===ed.dataset.id); if (r) roomModal(r); }); }
+  if (del) {
+    if (!confirm('Delete this room? Its tasks and materials will also be removed.')) return;
+    run(async () => { const id=del.dataset.id; await dbDelete('rooms',id); await dbDeleteWhere('tasks','roomId',id); await dbDeleteWhere('materials','roomId',id); await Promise.all([renderRooms(),renderTasks(),renderMats()]); syncRoomSelects(); toast('Room deleted.'); });
+  }
+});
+
+/* ════════════════════════════════════════════════════════════
+   TASKS
+   ════════════════════════════════════════════════════════════ */
+async function renderTasks() {
+  const [tasks, rooms] = await Promise.all([dbLoad('tasks'), dbLoad('rooms')]);
+  const wrap = document.getElementById('tasks-wrap');
+  if (!tasks.length) { wrap.innerHTML = `<div class="empty"><div class="empty-icon">✅</div><h3>No tasks yet</h3><p>Add tasks to track your renovation work.</p></div>`; return; }
+  const byRoom = {}, uncat = [];
+  tasks.forEach(t => t.roomId ? (byRoom[t.roomId]||(byRoom[t.roomId]=[])).push(t) : uncat.push(t));
+  let html = '';
+  rooms.forEach(r => { const ts=byRoom[r.id]; if(!ts?.length) return; const done=ts.filter(t=>t.done).length; html+=`<div class="group"><div class="group-head"><span>${esc(r.name)}</span><span class="group-count">${done}/${ts.length} done</span></div>${ts.map(taskRow).join('')}</div>`; });
+  if (uncat.length) { const done=uncat.filter(t=>t.done).length; html+=`<div class="group"><div class="group-head"><span>General</span><span class="group-count">${done}/${uncat.length} done</span></div>${uncat.map(taskRow).join('')}</div>`; }
+  wrap.innerHTML = html;
+}
+
+function taskRow(t) {
+  return `<div class="check-row ${t.done?'done':''}" data-done="${t.done}">
+    <div class="check-circle ${t.done?'on':''}" data-toggle="${esc(t.id)}">${t.done?ICO.chk:''}</div>
+    <span class="check-label">${esc(t.name)}</span>
+    <button class="icon-btn del-task" data-id="${esc(t.id)}" style="color:var(--red)">${ICO.trash}</button>
+  </div>`;
+}
+
+document.getElementById('add-task-btn').addEventListener('click', () => run(async () => {
+  const rooms = await dbLoad('rooms');
+  const opts  = rooms.map(r=>`<option value="${esc(r.id)}">${esc(r.name)}</option>`).join('');
+  openModal('Add Task', `
+    <div class="fg"><label>Task Name *</label><input id="tk-name" type="text" placeholder="e.g. Paint walls, Install tiles…"></div>
+    <div class="fg"><label>Room</label><select id="tk-room"><option value="">— General —</option>${opts}</select></div>
+    <div class="form-foot"><button class="btn btn-secondary do-cancel">Cancel</button><button class="btn btn-primary do-submit">Add Task</button></div>
+  `, () => run(async () => {
+    const name = document.getElementById('tk-name').value.trim();
+    if (!name) { toast('Please enter a task name.'); return; }
+    await dbInsert('tasks', { id:uid(), name, roomId:document.getElementById('tk-room').value||null, done:false });
+    await renderTasks(); closeModal(); toast('Task added!');
+  }));
+}));
+
+document.getElementById('tasks-wrap').addEventListener('click', e => {
+  const tog = e.target.closest('[data-toggle]');
+  const del = e.target.closest('.del-task');
+  if (tog) { const cur = tog.closest('[data-done]').dataset.done==='true'; run(async () => { await dbUpdate('tasks',tog.dataset.toggle,{done:!cur}); await renderTasks(); }); }
+  if (del) { run(async () => { await dbDelete('tasks',del.dataset.id); await renderTasks(); toast('Task deleted.'); }); }
+});
+
+/* ════════════════════════════════════════════════════════════
+   TEAM
+   ════════════════════════════════════════════════════════════ */
+async function renderTeam() {
+  const [entries, payments] = await Promise.all([dbLoad('team_entries'), dbLoad('payments')]);
+  const master  = isMaster();
+  const visible = master ? Object.keys(TEAM) : [getRole()];
+  document.getElementById('team-cards').innerHTML = visible.map(key => {
+    const cfg = TEAM[key]; if (!cfg) return '';
+    const myE  = entries.filter(e=>e.name.toLowerCase()===cfg.displayName.toLowerCase()).sort((a,b)=>(b.week||'').localeCompare(a.week||''));
+    const hrs  = myE.reduce((s,e)=>s+(parseFloat(e.hours)||0),0);
+    const paid = payments.filter(p=>p.payee.toLowerCase()===cfg.displayName.toLowerCase()&&p.status==='Paid').reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
+    const owed = Math.max(0, hrs * cfg.rate - paid);
+    return `<div class="team-card">
+      <div class="team-card-head">
+        <div>
+          <h2 class="team-card-name">${esc(cfg.displayName)}</h2>
+          <div class="team-card-stats">
+            <div><span class="tc-hours">${hrs%1===0?hrs:hrs.toFixed(1)}</span><span class="tc-hours-lbl">hrs total</span></div>
+            <span class="tc-rate">€${cfg.rate}/hr</span>
+            <span class="tc-owed">Owed: ${money(owed)}</span>
+          </div>
+        </div>
+        <div class="team-card-btns">
+          <button class="btn btn-primary log-hours-btn" data-key="${key}">
+            <svg class="ico" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Log Hours
+          </button>
+          <button class="btn btn-secondary export-pdf-btn" data-key="${key}">${ICO.pdf} PDF Statement</button>
+        </div>
+      </div>
+      ${myE.length
+        ? `<div class="team-history"><table>
+            <thead><tr><th>Week</th><th>Hours</th><th>Notes</th>${master?'<th></th>':''}</tr></thead>
+            <tbody>${myE.map(e=>`<tr>
+              <td>${esc(fmtWeek(e.week))}</td>
+              <td><strong style="color:var(--terra)">${parseFloat(e.hours)||0}h</strong></td>
+              <td style="color:var(--text-muted)">${esc(e.notes||'—')}</td>
+              ${master?`<td><button class="icon-btn del-entry" data-id="${esc(e.id)}" style="color:var(--red)">${ICO.trash}</button></td>`:''}
+            </tr>`).join('')}</tbody>
+          </table></div>`
+        : `<p class="team-no-entries">No hours logged yet.</p>`}
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('team-cards').addEventListener('click', e => {
+  const logBtn = e.target.closest('.log-hours-btn');
+  const pdfBtn = e.target.closest('.export-pdf-btn');
+  const delBtn = e.target.closest('.del-entry');
+  if (logBtn) showLogHoursModal(logBtn.dataset.key);
+  if (pdfBtn) run(() => exportPDF(pdfBtn.dataset.key));
+  if (delBtn) { run(async () => { await dbDelete('team_entries', delBtn.dataset.id); await renderTeam(); toast('Entry deleted.'); }); }
+});
+
+function showLogHoursModal(personKey) {
+  const cfg = TEAM[personKey]; if (!cfg) return;
+  openModal(`Log Hours — ${cfg.displayName}`, `
+    <div class="fg" style="background:var(--warm);border:1.5px solid var(--terra);border-radius:var(--r-sm);padding:14px 14px 4px;margin-bottom:18px;">
+      <label style="color:var(--terra);font-weight:600;font-size:.85rem;letter-spacing:.02em;">Week *</label>
+      <input id="wk-week" type="week" style="background:#fff;">
+      <p style="font-size:.78rem;color:var(--text-muted);margin-top:6px;margin-bottom:10px;">One entry per person per week.</p>
+    </div>
+    <div class="fg"><label>Hours Worked *</label><input id="wk-hrs" type="number" min="0" step="0.5" placeholder="e.g. 40"></div>
+    <div class="fg"><label>Notes</label><textarea id="wk-notes" placeholder="What was completed this week…"></textarea></div>
+    <div class="form-foot"><button class="btn btn-secondary do-cancel">Cancel</button><button class="btn btn-primary do-submit">Log Hours</button></div>
+  `, () => run(async () => {
+    const hrs = document.getElementById('wk-hrs').value;
+    if (!hrs) { toast('Please enter hours worked.'); return; }
+    await dbInsert('team_entries', { id:uid(), name:cfg.displayName, week:document.getElementById('wk-week').value||'Unspecified', hours:parseFloat(hrs), notes:document.getElementById('wk-notes').value.trim() });
+    await renderTeam(); closeModal(); toast('Hours logged!');
+  }));
+  setTimeout(() => { const el=document.getElementById('wk-week'); if(!el) return; const n=new Date(); el.value=`${n.getFullYear()}-W${String(isoWeek(n)).padStart(2,'0')}`; }, 60);
+}
+
+async function exportPDF(personKey) {
+  if (!window.jspdf) { toast('PDF library not loaded — check your internet connection.'); return; }
+  const cfg = TEAM[personKey]; if (!cfg) return;
+  const [entries, payments] = await Promise.all([dbLoad('team_entries'), dbLoad('payments')]);
+  const myE  = entries.filter(e=>e.name.toLowerCase()===cfg.displayName.toLowerCase()).sort((a,b)=>(a.week||'').localeCompare(b.week||''));
+  const myP  = payments.filter(p=>p.payee.toLowerCase()===cfg.displayName.toLowerCase()).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const hrs  = myE.reduce((s,e)=>s+(parseFloat(e.hours)||0),0);
+  const earn = hrs * cfg.rate;
+  const paid = myP.filter(p=>p.status==='Paid').reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
+  const owed = Math.max(0, earn - paid);
+
+  const { jsPDF } = window.jspdf;
+  const doc   = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+  const TERRA = [196,98,58], INK=[28,25,23], MUTED=[138,122,114];
+
+  doc.setFillColor(...TERRA); doc.rect(0,0,210,42,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(20); doc.setTextColor(255,255,255);
+  doc.text('Atlanta by the Sea', 15, 18);
+  doc.setFontSize(13); doc.setFont('helvetica','normal');
+  doc.text(`Hours Statement — ${cfg.displayName}`, 15, 32);
+
+  doc.setTextColor(...INK); doc.setFontSize(9);
+  doc.text(`Generated: ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}`, 15, 52);
+  doc.text(`Rate: €${cfg.rate} per hour`, 15, 59);
+
+  doc.setFillColor(250,247,242); doc.roundedRect(120,46,75,32,3,3,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...INK);
+  doc.text('Summary', 130, 54);
+  doc.setFont('helvetica','normal'); doc.setFontSize(9);
+  doc.text(`Total hours:   ${hrs%1===0?hrs:hrs.toFixed(1)}h`, 130, 61);
+  doc.text(`Gross earned:  ${money(earn)}`, 130, 67);
+  doc.setFont('helvetica','bold'); doc.setTextColor(...TERRA);
+  doc.text(`Net owed:      ${money(owed)}`, 130, 74);
+
+  let y = 86;
+  doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...INK);
+  doc.text('Weekly Hours', 15, y); y += 4;
+  if (myE.length) {
+    doc.autoTable({ startY:y, head:[['Week','Hours','Notes']], body:myE.map(e=>[fmtWeek(e.week),`${parseFloat(e.hours)||0}h`,e.notes||'—']), headStyles:{fillColor:TERRA,textColor:[255,255,255],fontStyle:'bold',fontSize:9}, bodyStyles:{fontSize:9}, alternateRowStyles:{fillColor:[250,247,242]}, columnStyles:{1:{halign:'center',cellWidth:22}}, margin:{left:15,right:15} });
+    y = doc.lastAutoTable.finalY + 10;
+  } else { doc.setFont('helvetica','italic'); doc.setTextColor(...MUTED); doc.setFontSize(9); doc.text('No hours logged yet.', 15, y+6); y+=14; }
+
+  if (myP.length) {
+    doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...INK);
+    doc.text('Payments Received', 15, y); y += 4;
+    doc.autoTable({ startY:y, head:[['Date','Description','Amount','Status']], body:myP.map(p=>[p.date?fmtDate(p.date):'—',p.description||'—',money(p.amount),p.status]), headStyles:{fillColor:[50,50,50],textColor:[255,255,255],fontStyle:'bold',fontSize:9}, bodyStyles:{fontSize:9}, alternateRowStyles:{fillColor:[250,247,242]}, columnStyles:{2:{halign:'right'}}, margin:{left:15,right:15} });
+  }
+
+  const ph = doc.internal.pageSize.height;
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...MUTED);
+  doc.text('Atlanta by the Sea — Renovation Tracker', 15, ph-10);
+  doc.save(`${cfg.displayName.toLowerCase()}-statement.pdf`);
+  toast(`${cfg.displayName}'s PDF ready!`);
+}
+
+/* ════════════════════════════════════════════════════════════
+   PAYMENTS
+   ════════════════════════════════════════════════════════════ */
+async function renderPayments() {
+  let pays = await dbLoad('payments');
+  if (!isMaster()) { const n=myName().toLowerCase(); pays=pays.filter(p=>p.payee.toLowerCase()===n); }
+  const owed = pays.filter(p=>p.status==='Owed').reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
+  const paid = pays.filter(p=>p.status==='Paid').reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
+  document.getElementById('pay-summary').innerHTML = `
+    <div class="pay-card"><div class="pay-card-lbl">Total Owed</div><div class="pay-card-amt pay-owed">${money(owed)}</div></div>
+    <div class="pay-card"><div class="pay-card-lbl">Total Paid</div><div class="pay-card-amt pay-paid">${money(paid)}</div></div>`;
+  const tbl = document.getElementById('pay-tbl');
+  if (!pays.length) { tbl.innerHTML = `<div class="empty"><div class="empty-icon">💶</div><h3>No payments yet</h3><p>Track what you owe and what you've paid.</p></div>`; return; }
+  const sorted = [...pays].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  tbl.innerHTML = `<table>
+    <thead><tr><th>Payee</th><th>Description</th><th>Amount</th><th>Date</th><th>Status</th>${isMaster()?'<th></th>':''}</tr></thead>
+    <tbody>${sorted.map(p=>`<tr>
+      <td><strong>${esc(p.payee)}</strong></td>
+      <td style="color:var(--text-muted)">${esc(p.description||'—')}</td>
+      <td><strong>${money(p.amount)}</strong></td>
+      <td style="color:var(--text-muted)">${p.date?fmtDate(p.date):'—'}</td>
+      <td><span class="badge ${p.status==='Paid'?'badge-paid':'badge-owed'}">${esc(p.status)}</span></td>
+      ${isMaster()?`<td class="td-actions">${p.status==='Owed'?`<button class="btn btn-sm btn-secondary mark-paid" data-id="${esc(p.id)}">✓ Mark Paid</button>`:''}<button class="icon-btn del-pay" data-id="${esc(p.id)}" style="color:var(--red)">${ICO.trash}</button></td>`:''}
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+document.getElementById('add-pay-btn').addEventListener('click', () => {
+  const today = new Date().toISOString().split('T')[0];
+  const teamOpts = Object.values(TEAM).map(c=>`<option>${esc(c.displayName)}</option>`).join('');
+  openModal('Add Payment', `
+    <div class="fg-row">
+      <div class="fg"><label>Payee *</label><input id="py-payee" type="text" list="payee-list" placeholder="Contractor name"><datalist id="payee-list">${teamOpts}</datalist></div>
+      <div class="fg"><label>Amount (€) *</label><input id="py-amt" type="number" min="0" step="0.01" placeholder="0.00"></div>
+    </div>
+    <div class="fg"><label>Description</label><input id="py-desc" type="text" placeholder="e.g. Week 3 labour"></div>
+    <div class="fg-row">
+      <div class="fg"><label>Date</label><input id="py-date" type="date" value="${today}"></div>
+      <div class="fg"><label>Status</label><select id="py-status"><option>Owed</option><option>Paid</option></select></div>
+    </div>
+    <div class="form-foot"><button class="btn btn-secondary do-cancel">Cancel</button><button class="btn btn-primary do-submit">Add Payment</button></div>
+  `, () => run(async () => {
+    const payee=document.getElementById('py-payee').value.trim(), amt=document.getElementById('py-amt').value;
+    if (!payee) { toast('Please enter a payee name.'); return; }
+    if (!amt)   { toast('Please enter an amount.'); return; }
+    await dbInsert('payments', { id:uid(), payee, description:document.getElementById('py-desc').value.trim(), amount:parseFloat(amt), date:document.getElementById('py-date').value, status:document.getElementById('py-status').value });
+    await renderPayments(); await renderTeam(); closeModal(); toast('Payment added!');
+  }));
+});
+
+document.getElementById('pay-tbl').addEventListener('click', e => {
+  const mp  = e.target.closest('.mark-paid');
+  const del = e.target.closest('.del-pay');
+  if (mp)  { run(async () => { await dbUpdate('payments',mp.dataset.id,{status:'Paid'}); await renderPayments(); await renderTeam(); toast('Marked as paid!'); }); }
+  if (del) { if (!confirm('Delete this payment entry?')) return; run(async () => { await dbDelete('payments',del.dataset.id); await renderPayments(); await renderTeam(); toast('Payment deleted.'); }); }
+});
+
+/* ════════════════════════════════════════════════════════════
+   MATERIALS
+   ════════════════════════════════════════════════════════════ */
+async function renderMats() {
+  const [mats, rooms] = await Promise.all([dbLoad('materials'), dbLoad('rooms')]);
+  const wrap = document.getElementById('mats-wrap');
+  if (!mats.length) { wrap.innerHTML = `<div class="empty"><div class="empty-icon">🛒</div><h3>Shopping list is empty</h3><p>Add materials and supplies you need to buy.</p></div>`; return; }
+  const byRoom={}, uncat=[];
+  mats.forEach(m => m.roomId ? (byRoom[m.roomId]||(byRoom[m.roomId]=[])).push(m) : uncat.push(m));
+  let html='';
+  rooms.forEach(r => { const ms=byRoom[r.id]; if(!ms?.length) return; const got=ms.filter(m=>m.bought).length; html+=`<div class="group"><div class="group-head"><span>${esc(r.name)}</span><span class="group-count">${got}/${ms.length} bought</span></div>${ms.map(matRow).join('')}</div>`; });
+  if (uncat.length) { const got=uncat.filter(m=>m.bought).length; html+=`<div class="group"><div class="group-head"><span>General</span><span class="group-count">${got}/${uncat.length} bought</span></div>${uncat.map(matRow).join('')}</div>`; }
+  wrap.innerHTML = html;
+}
+
+function matRow(m) {
+  const sub=[m.quantity?`Qty: ${esc(m.quantity)}`:'',m.notes?esc(m.notes):''].filter(Boolean).join(' · ');
+  return `<div class="check-row ${m.bought?'done':''}" data-bought="${m.bought}">
+    <div class="check-circle sq ${m.bought?'on':''}" data-mtoggle="${esc(m.id)}">${m.bought?ICO.chk:''}</div>
+    <span class="check-label">${esc(m.name)}</span>
+    ${sub?`<span class="check-sub">${sub}</span>`:''}
+    <button class="icon-btn del-mat" data-id="${esc(m.id)}" style="color:var(--red)">${ICO.trash}</button>
+  </div>`;
+}
+
+document.getElementById('add-mat-btn').addEventListener('click', () => run(async () => {
+  const rooms = await dbLoad('rooms');
+  const opts  = rooms.map(r=>`<option value="${esc(r.id)}">${esc(r.name)}</option>`).join('');
+  openModal('Add Material / Item', `
+    <div class="fg"><label>Item Name *</label><input id="mt-name" type="text" placeholder="e.g. Floor tiles, Paint, Cement…"></div>
+    <div class="fg-row">
+      <div class="fg"><label>Room</label><select id="mt-room"><option value="">— General —</option>${opts}</select></div>
+      <div class="fg"><label>Quantity</label><input id="mt-qty" type="text" placeholder="e.g. 20m², 5 bags"></div>
+    </div>
+    <div class="fg"><label>Notes</label><textarea id="mt-notes" placeholder="Colour, brand, dimensions…"></textarea></div>
+    <div class="form-foot"><button class="btn btn-secondary do-cancel">Cancel</button><button class="btn btn-primary do-submit">Add Item</button></div>
+  `, () => run(async () => {
+    const name = document.getElementById('mt-name').value.trim();
+    if (!name) { toast('Please enter an item name.'); return; }
+    await dbInsert('materials', { id:uid(), name, roomId:document.getElementById('mt-room').value||null, quantity:document.getElementById('mt-qty').value.trim(), notes:document.getElementById('mt-notes').value.trim(), bought:false });
+    await renderMats(); closeModal(); toast('Item added!');
+  }));
+}));
+
+document.getElementById('mats-wrap').addEventListener('click', e => {
+  const tog = e.target.closest('[data-mtoggle]');
+  const del = e.target.closest('.del-mat');
+  if (tog) { const cur=tog.closest('[data-bought]').dataset.bought==='true'; run(async () => { await dbUpdate('materials',tog.dataset.mtoggle,{bought:!cur}); await renderMats(); }); }
+  if (del) { run(async () => { await dbDelete('materials',del.dataset.id); await renderMats(); toast('Item removed.'); }); }
+});
+
+/* ════════════════════════════════════════════════════════════
+   PHOTOS
+   ════════════════════════════════════════════════════════════ */
+async function renderPhotos() {
+  const [photos, rooms] = await Promise.all([dbLoad('photos'), dbLoad('rooms')]);
+  const rMap = Object.fromEntries(rooms.map(r=>[r.id,r.name]));
+  const grid = document.getElementById('photos-grid');
+  if (!photos.length) { grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📸</div><h3>No photos yet</h3><p>Upload photos to document your renovation progress.</p></div>`; return; }
+  const sorted = [...photos].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  grid.innerHTML = sorted.map(p=>`
+    <div class="photo-card">
+      <img src="${p.dataUrl}" alt="${esc(p.filename||'Photo')}" loading="lazy">
+      <div class="photo-overlay">
+        <div>
+          <div class="photo-room">${p.roomId&&rMap[p.roomId]?esc(rMap[p.roomId]):'General'}</div>
+          <div class="photo-date">${fmtDate(p.date)}</div>
+        </div>
+        <button class="photo-del del-photo" data-id="${esc(p.id)}" title="Delete photo">&times;</button>
+      </div>
+    </div>`).join('');
+}
+
+async function syncRoomSelects() {
+  const rooms = await dbLoad('rooms');
+  const sel   = document.getElementById('photo-room-sel');
+  const cur   = sel.value;
+  sel.innerHTML = '<option value="">— No room label —</option>' + rooms.map(r=>`<option value="${esc(r.id)}">${esc(r.name)}</option>`).join('');
+  if (cur) sel.value = cur;
+}
+
+const zone   = document.getElementById('upload-zone');
+const fInput = document.getElementById('photo-input');
+zone.addEventListener('click', () => fInput.click());
+zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('drag-over'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag-over'); const files=[...e.dataTransfer.files].filter(f=>f.type.startsWith('image/')); if(files.length) processPhotos(files); });
+fInput.addEventListener('change', function() { if (this.files.length) processPhotos([...this.files]); this.value=''; });
+
+function processPhotos(files) {
+  const roomId = document.getElementById('photo-room-sel').value || null;
+  let done = 0;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = ev => { compress(ev.target.result, async compressed => {
+      await dbInsert('photos', { id:uid(), filename:file.name, roomId, date:new Date().toISOString().split('T')[0], dataUrl:compressed });
+      if (++done===files.length) { await renderPhotos(); toast(`${done} photo${done>1?'s':''} uploaded!`); }
+    }); };
+    reader.readAsDataURL(file);
+  });
+}
+
+function compress(dataUrl, cb) {
+  const img = new Image();
+  img.onload = () => {
+    const MAX=1200; let w=img.width, h=img.height;
+    if (w>MAX||h>MAX) { if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;} }
+    const c=document.createElement('canvas'); c.width=w; c.height=h;
+    c.getContext('2d').drawImage(img,0,0,w,h); cb(c.toDataURL('image/jpeg',.76));
+  };
+  img.src = dataUrl;
+}
+
+document.getElementById('photos-grid').addEventListener('click', e => {
+  const del = e.target.closest('.del-photo');
+  if (del && confirm('Delete this photo?')) { run(async () => { await dbDelete('photos',del.dataset.id); await renderPhotos(); toast('Photo deleted.'); }); }
+});
+
+/* ════════════════════════════════════════════════════════════
+   INIT
+   ════════════════════════════════════════════════════════════ */
+async function renderAll() {
+  if (isMaster()) {
+    await Promise.all([renderRooms(), renderTasks(), renderTeam(), renderPayments(), renderMats(), renderPhotos(), syncRoomSelects()]);
+  } else {
+    await Promise.all([renderTeam(), renderPayments()]);
+  }
+}
+
+if (getRole()) showApp();
+</script>
+</body>
+</html>
