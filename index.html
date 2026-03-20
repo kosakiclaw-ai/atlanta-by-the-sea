@@ -465,7 +465,7 @@ async function dbDeleteWhere(table, field, value) {
 
 const uid     = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
 const esc     = s  => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-const money   = n  => '€' + parseFloat(n||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+const money   = n  => '$' + parseFloat(n||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
 const fmtDate = s  => { try { return new Date(s+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); } catch { return s||''; } };
 const fmtWeek = s  => { if (!s||!s.includes('-W')) return s||''; const [y,w]=s.split('-W'); return `Wk ${parseInt(w)}, ${y}`; };
 const isoWeek = d  => { const u=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())); u.setUTCDate(u.getUTCDate()+4-(u.getUTCDay()||7)); const y0=new Date(Date.UTC(u.getUTCFullYear(),0,1)); return Math.ceil((((u-y0)/86400000)+1)/7); };
@@ -710,7 +710,6 @@ async function renderTeam() {
           <h2 class="team-card-name">${esc(cfg.displayName)}</h2>
           <div class="team-card-stats">
             <div><span class="tc-hours">${hrs%1===0?hrs:hrs.toFixed(1)}</span><span class="tc-hours-lbl">hrs total</span></div>
-            <span class="tc-rate">€${cfg.rate}/hr</span>
             <span class="tc-owed">Owed: ${money(owed)}</span>
           </div>
         </div>
@@ -788,7 +787,7 @@ async function exportPDF(personKey) {
 
   doc.setTextColor(...INK); doc.setFontSize(9);
   doc.text(`Generated: ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}`, 15, 52);
-  doc.text(`Rate: €${cfg.rate} per hour`, 15, 59);
+  doc.text(`Rate: $${cfg.rate} per hour`, 15, 59);
 
   doc.setFillColor(250,247,242); doc.roundedRect(120,46,75,32,3,3,'F');
   doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...INK);
@@ -853,7 +852,7 @@ document.getElementById('add-pay-btn').addEventListener('click', () => {
   openModal('Add Payment', `
     <div class="fg-row">
       <div class="fg"><label>Payee *</label><input id="py-payee" type="text" list="payee-list" placeholder="Contractor name"><datalist id="payee-list">${teamOpts}</datalist></div>
-      <div class="fg"><label>Amount (€) *</label><input id="py-amt" type="number" min="0" step="0.01" placeholder="0.00"></div>
+      <div class="fg"><label>Amount ($) *</label><input id="py-amt" type="number" min="0" step="0.01" placeholder="0.00"></div>
     </div>
     <div class="fg"><label>Description</label><input id="py-desc" type="text" placeholder="e.g. Week 3 labour"></div>
     <div class="fg-row">
