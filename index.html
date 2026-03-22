@@ -7,9 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
-  <!-- Supabase JS v2 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-  <!-- jsPDF + autoTable for PDF export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
   <style>
@@ -44,7 +42,6 @@
     button { font-family: inherit; cursor: pointer; }
     input, select, textarea { font-family: inherit; }
 
-    /* LOGIN */
     #login-screen { position: fixed; inset: 0; background: var(--ink); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 24px; }
     .login-card { background: var(--ink-light); border: 1px solid rgba(255,255,255,.08); border-radius: 20px; padding: 0 0 44px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 24px 64px rgba(0,0,0,.55); overflow: hidden; }
     .login-hero { width: 100%; height: 200px; object-fit: cover; display: block; }
@@ -62,13 +59,11 @@
     .login-error { color: #E07070; font-size: .875rem; min-height: 20px; }
     @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)} }
 
-    /* SETUP BANNER */
     #setup-banner { background: var(--ink-muted); color: rgba(250,247,242,.85); font-size: .82rem; padding: 10px 24px; display: none; align-items: center; gap: 10px; }
     #setup-banner.show { display: flex; }
     #setup-banner strong { color: var(--terra); }
     #setup-banner code { background: rgba(0,0,0,.3); padding: 2px 7px; border-radius: 4px; font-size: .8rem; }
 
-    /* NAV */
     #app { display: none; min-height: 100vh; }
     #app.visible { display: block; }
     .nav { position: sticky; top: 0; z-index: 100; background: var(--ink); height: var(--nav-h); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; gap: 16px; box-shadow: 0 2px 16px rgba(0,0,0,.35); }
@@ -85,7 +80,6 @@
     .nav-logout { background: none; color: rgba(250,247,242,.5); border: 1px solid rgba(255,255,255,.18); font-size: .78rem; padding: 6px 12px; border-radius: 7px; white-space: nowrap; transition: color .2s, border-color .2s; }
     .nav-logout:hover { color: var(--cream); border-color: rgba(255,255,255,.4); }
 
-    /* LAYOUT */
     .main { padding: 36px 24px; max-width: 1100px; margin: 0 auto; }
     .section { display: none; }
     .section.active { display: block; }
@@ -94,7 +88,6 @@
     .sec-title span { color: var(--terra); }
     .sec-hint { margin-top: -12px; margin-bottom: 24px; font-size: .88rem; color: var(--text-muted); border-left: 3px solid var(--terra); padding-left: 12px; }
 
-    /* BUTTONS */
     .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; border: none; border-radius: var(--r-sm); font-size: .875rem; font-weight: 500; transition: background .2s, transform .15s, box-shadow .2s; }
     .btn-primary { background: var(--terra); color: #fff; }
     .btn-primary:hover { background: var(--terra-light); transform: translateY(-1px); box-shadow: var(--sh-sm); }
@@ -104,11 +97,9 @@
     .icon-btn { display: inline-flex; align-items: center; justify-content: center; background: none; border: none; padding: 6px; border-radius: 7px; transition: background .2s; }
     .icon-btn:hover { background: var(--border-light); }
 
-    /* CARD */
     .card { background: var(--card); border-radius: var(--r); padding: 24px; box-shadow: var(--sh-sm); border: 1px solid var(--border-light); }
     .grid-3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
 
-    /* BADGES */
     .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: .72rem; font-weight: 600; letter-spacing: .04em; }
     .badge-ns   { background: rgba(138,122,114,.12); color: var(--text-muted); }
     .badge-ip   { background: rgba(196,98,58,.12);   color: var(--terra); }
@@ -116,18 +107,15 @@
     .badge-owed { background: rgba(196,90,90,.12);    color: var(--red); }
     .badge-paid { background: rgba(61,138,80,.12);    color: var(--green); }
 
-    /* PROGRESS */
     .prog-track { height: 6px; background: var(--border-light); border-radius: 3px; overflow: hidden; margin: 12px 0 6px; }
     .prog-fill  { height: 100%; background: var(--terra); border-radius: 3px; transition: width .5s ease; }
 
-    /* ROOMS */
     .room-head  { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 10px; }
     .room-name  { font-family: 'Playfair Display', serif; font-size: 1.15rem; }
     .room-acts  { display: flex; gap: 2px; flex-shrink: 0; }
     .room-pct   { display: flex; justify-content: space-between; font-size: .78rem; color: var(--text-muted); }
     .room-notes { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-light); font-size: .85rem; color: var(--text-muted); }
 
-    /* CHECKLIST */
     .group { margin-bottom: 28px; }
     .group-head { display: flex; align-items: center; justify-content: space-between; font-family: 'Playfair Display', serif; font-size: 1.05rem; padding-bottom: 8px; margin-bottom: 10px; border-bottom: 2px solid var(--terra); }
     .group-count { font-family: 'DM Sans', sans-serif; font-size: .78rem; font-weight: 500; color: var(--text-muted); }
@@ -141,7 +129,6 @@
     .check-label { flex: 1; font-size: .9rem; }
     .check-sub   { font-size: .78rem; color: var(--text-muted); white-space: nowrap; }
 
-    /* TABLE */
     .tbl-wrap { background: var(--card); border-radius: var(--r); border: 1px solid var(--border-light); overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; }
     thead th { background: var(--warm); padding: 11px 16px; text-align: left; font-size: .76rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--border); }
@@ -150,7 +137,6 @@
     tbody tr:hover td { background: var(--warm); }
     .td-actions { display: flex; gap: 4px; align-items: center; white-space: nowrap; }
 
-    /* TEAM CARDS */
     .team-cards { display: flex; flex-direction: column; gap: 28px; }
     .team-card { background: var(--card); border-radius: var(--r); border: 1px solid var(--border-light); box-shadow: var(--sh-md); overflow: hidden; }
     .team-card-head { background: var(--ink); padding: 22px 26px; display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
@@ -166,7 +152,6 @@
     .team-history { overflow-x: auto; }
     .team-no-entries { text-align: center; padding: 28px; color: var(--text-muted); font-size: .88rem; font-style: italic; }
 
-    /* PAYMENTS */
     .pay-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
     .pay-card { background: var(--card); border-radius: var(--r); border: 1px solid var(--border-light); box-shadow: var(--sh-sm); padding: 24px; text-align: center; }
     .pay-card-lbl { font-size: .76rem; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); margin-bottom: 8px; }
@@ -174,7 +159,6 @@
     .pay-owed { color: var(--red); }
     .pay-paid { color: var(--green); }
 
-    /* PHOTOS */
     .upload-zone { border: 2px dashed var(--border); border-radius: var(--r); padding: 36px 24px; text-align: center; cursor: pointer; background: var(--card); transition: border-color .2s, background .2s; margin-bottom: 16px; }
     .upload-zone:hover, .upload-zone.drag-over { border-color: var(--terra); background: rgba(196,98,58,.04); }
     .upload-icon { font-size: 2.2rem; color: var(--text-muted); margin-bottom: 8px; }
@@ -191,7 +175,6 @@
     .photo-del { background: rgba(196,90,90,.85); border: none; color: #fff; width: 26px; height: 26px; border-radius: 50%; font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: background .2s; flex-shrink: 0; }
     .photo-del:hover { background: var(--red); }
 
-    /* MODAL */
     .overlay { display: none; position: fixed; inset: 0; background: rgba(28,25,23,.65); z-index: 500; align-items: center; justify-content: center; padding: 24px; backdrop-filter: blur(3px); }
     .overlay.open { display: flex; }
     .modal { background: var(--card); border-radius: 16px; padding: 32px; width: 100%; max-width: 490px; box-shadow: var(--sh-lg); max-height: 92vh; overflow-y: auto; }
@@ -200,7 +183,6 @@
     .modal-x { background: none; border: none; font-size: 1.6rem; color: var(--text-muted); padding: 2px 6px; border-radius: 5px; line-height: 1; transition: background .2s; }
     .modal-x:hover { background: var(--warm); }
 
-    /* FORMS */
     .fg { margin-bottom: 18px; }
     .fg label { display: block; font-size: .82rem; font-weight: 500; color: var(--text-body); margin-bottom: 5px; }
     .fg input, .fg select, .fg textarea { width: 100%; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: var(--r-sm); font-size: .9rem; color: var(--text); background: var(--cream); outline: none; transition: border-color .2s, box-shadow .2s; }
@@ -209,29 +191,24 @@
     .fg-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     .form-foot { display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px; }
 
-    /* LOADING */
     #loading { position: fixed; inset: 0; background: rgba(28,25,23,.45); z-index: 800; display: none; align-items: center; justify-content: center; }
     #loading.show { display: flex; }
     .spinner { width: 40px; height: 40px; border: 3px solid rgba(250,247,242,.2); border-top-color: var(--terra); border-radius: 50%; animation: spin .7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* TOAST */
     #toast { position: fixed; bottom: 22px; right: 22px; background: var(--ink); color: var(--cream); padding: 11px 20px; border-radius: 10px; font-size: .85rem; box-shadow: var(--sh-lg); z-index: 900; max-width: 320px; transform: translateY(80px); opacity: 0; transition: transform .3s ease, opacity .3s ease; pointer-events: none; }
     #toast.show { transform: translateY(0); opacity: 1; }
 
-    /* EMPTY */
     .empty { text-align: center; padding: 64px 24px; color: var(--text-muted); grid-column: 1 / -1; }
     .empty-icon { font-size: 3rem; margin-bottom: 14px; opacity: .45; }
     .empty h3 { font-family: 'Playfair Display', serif; font-size: 1.2rem; margin-bottom: 6px; color: var(--text-body); }
     .empty p  { font-size: .85rem; }
 
-    /* SCROLLBAR */
     ::-webkit-scrollbar { width: 7px; height: 7px; }
     ::-webkit-scrollbar-track { background: var(--border-light); }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
-    /* RESPONSIVE */
     @media (max-width: 700px) {
       .nav { padding: 0 14px; gap: 10px; }
       .nav-brand { font-size: 1.1rem; }
@@ -260,14 +237,14 @@
   <div class="login-card" id="login-card">
     <img src="home.jpg" alt="Atlanta by the Sea" class="login-hero">
     <div class="login-card-body">
-    <div class="login-logo">Atlanta by the <span>Sea</span></div>
-    <div class="login-sub">Renovation Management</div>
-    <form class="login-form" id="login-form" autocomplete="off">
-      <input type="password" id="login-pw" placeholder="Enter password" autocomplete="current-password">
-      <div class="login-error" id="login-err"></div>
-      <button type="submit" class="login-btn">Enter &rarr;</button>
-    </form>
-    </div><!-- /login-card-body -->
+      <div class="login-logo">Atlanta by the <span>Sea</span></div>
+      <div class="login-sub">Renovation Management</div>
+      <form class="login-form" id="login-form" autocomplete="off">
+        <input type="password" id="login-pw" placeholder="Enter password" autocomplete="current-password">
+        <div class="login-error" id="login-err"></div>
+        <button type="submit" class="login-btn">Enter &rarr;</button>
+      </form>
+    </div>
   </div>
 </div>
 
@@ -380,10 +357,6 @@
 <script>
 'use strict';
 
-/* ════════════════════════════════════════════════════════════
-   ⚙️  CONFIGURATION
-   ════════════════════════════════════════════════════════════ */
-
 const SUPABASE_URL = 'https://mfvwgoekaqsjzelmkkdq.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mdndnb2VrYXFzanplbG1ra2RxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMDE1NzgsImV4cCI6MjA4OTU3NzU3OH0.6Ps09HOl5aHqnI9aknRBJ_r9j8SB5YypHqPD0R4i9uE';
 
@@ -393,8 +366,6 @@ const TEAM = {
   andrew:   { displayName: 'Andrew',   password: 'andrew2024',   rate: 25 },
   mohammed: { displayName: 'Mohammed', password: 'mohammed2024', rate: 25 },
 };
-
-/* ════════════════════════════════════════════════════════════ */
 
 const USE_DB = SUPABASE_URL !== 'YOUR_SUPABASE_URL';
 const db = USE_DB ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
@@ -495,12 +466,31 @@ function toast(msg) {
   toastT = setTimeout(() => el.classList.remove('show'), 3200);
 }
 
-/* ── AUTH ── */
 const SESS_KEY = 'ct_sess_role';
-function getRole()   { return localStorage.getItem(SESS_KEY); }
-function isMaster()  { return getRole() === 'master'; }
-function myTeamKey() { return isMaster() ? null : getRole(); }
-function myName()    { const k=myTeamKey(); return k ? TEAM[k].displayName : null; }
+function getRole() { return localStorage.getItem(SESS_KEY); }
+
+function hasFullAccess() {
+  const role = getRole();
+  return role === 'master' || role === 'andrew';
+}
+
+function isMaster() {
+  return getRole() === 'master';
+}
+
+function isAndrew() {
+  return getRole() === 'andrew';
+}
+
+function myTeamKey() {
+  const role = getRole();
+  return TEAM[role] ? role : null;
+}
+
+function myName() {
+  const k = myTeamKey();
+  return k ? TEAM[k].displayName : null;
+}
 
 function roleFromPassword(pw) {
   if (pw === MASTER_PASS) return 'master';
@@ -541,22 +531,30 @@ function showApp() {
 }
 
 function applyRoleUI() {
-  const role   = getRole();
-  const master = role === 'master';
-  document.getElementById('role-badge').textContent = master ? 'Master' : (TEAM[role]?.displayName || role);
+  const role = getRole();
+  const fullAccess = hasFullAccess();
+
+  document.getElementById('role-badge').textContent =
+    role === 'master' ? 'Master' : (TEAM[role]?.displayName || role);
+
   document.querySelectorAll('.nav-tab').forEach(tab => {
-    const sec = tab.dataset.sec;
-    tab.classList.toggle('hidden', !master && !['workers','payments'].includes(sec));
+    tab.classList.toggle('hidden', false);
   });
-  if (!master) {
+
+  if (!fullAccess) {
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelector('[data-sec="workers"]').classList.add('active');
     document.getElementById('sec-workers').classList.add('active');
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      const sec = tab.dataset.sec;
+      tab.classList.toggle('hidden', !['workers','payments'].includes(sec));
+    });
   }
-  document.getElementById('team-hint').style.display    = master ? '' : 'none';
-  document.getElementById('add-pay-btn').style.display  = master ? '' : 'none';
-  document.getElementById('setup-banner').classList.toggle('show', master && !USE_DB);
+
+  document.getElementById('team-hint').style.display   = fullAccess ? '' : 'none';
+  document.getElementById('add-pay-btn').style.display = fullAccess ? '' : 'none';
+  document.getElementById('setup-banner').classList.toggle('show', isMaster() && !USE_DB);
 }
 
 document.getElementById('nav-tabs').addEventListener('click', e => {
@@ -568,7 +566,6 @@ document.getElementById('nav-tabs').addEventListener('click', e => {
   document.getElementById('sec-' + tab.dataset.sec).classList.add('active');
 });
 
-/* ── MODAL ── */
 let modalCb = null;
 function openModal(title, body, cb) {
   document.getElementById('modal-title').textContent = title;
@@ -585,9 +582,6 @@ document.getElementById('modal-body').addEventListener('click', e => {
   if (e.target.classList.contains('do-cancel')) closeModal();
 });
 
-/* ════════════════════════════════════════════════════════════
-   ROOMS
-   ════════════════════════════════════════════════════════════ */
 async function renderRooms() {
   const rooms = await dbLoad('rooms');
   const grid  = document.getElementById('rooms-grid');
@@ -646,9 +640,6 @@ document.getElementById('rooms-grid').addEventListener('click', async e => {
   }
 });
 
-/* ════════════════════════════════════════════════════════════
-   TASKS
-   ════════════════════════════════════════════════════════════ */
 async function renderTasks() {
   const [tasks, rooms] = await Promise.all([dbLoad('tasks'), dbLoad('rooms')]);
   const wrap = document.getElementById('tasks-wrap');
@@ -691,9 +682,6 @@ document.getElementById('tasks-wrap').addEventListener('click', e => {
   if (del) { run(async () => { await dbDelete('tasks',del.dataset.id); await renderTasks(); toast('Task deleted.'); }); }
 });
 
-/* ════════════════════════════════════════════════════════════
-   TEAM
-   ════════════════════════════════════════════════════════════ */
 async function renderTeam() {
   const [entries, payments] = await Promise.all([dbLoad('team_entries'), dbLoad('payments')]);
   const master  = isMaster();
@@ -819,12 +807,17 @@ async function exportPDF(personKey) {
   toast(`${cfg.displayName}'s PDF ready!`);
 }
 
-/* ════════════════════════════════════════════════════════════
-   PAYMENTS
-   ════════════════════════════════════════════════════════════ */
 async function renderPayments() {
   let pays = await dbLoad('payments');
-  if (!isMaster()) { const n=myName().toLowerCase(); pays=pays.filter(p=>p.payee.toLowerCase()===n); }
+
+  if (isAndrew()) {
+    const n = myName().toLowerCase();
+    pays = pays.filter(p => p.payee.toLowerCase() === n);
+  } else if (!hasFullAccess()) {
+    const n = myName().toLowerCase();
+    pays = pays.filter(p => p.payee.toLowerCase() === n);
+  }
+
   const owed = pays.filter(p=>p.status==='Owed').reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
   const paid = pays.filter(p=>p.status==='Paid').reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
   document.getElementById('pay-summary').innerHTML = `
@@ -832,26 +825,31 @@ async function renderPayments() {
     <div class="pay-card"><div class="pay-card-lbl">Total Paid</div><div class="pay-card-amt pay-paid">${money(paid)}</div></div>`;
   const tbl = document.getElementById('pay-tbl');
   if (!pays.length) { tbl.innerHTML = `<div class="empty"><div class="empty-icon">💶</div><h3>No payments yet</h3><p>Track what you owe and what you've paid.</p></div>`; return; }
+
+  const canManagePayments = hasFullAccess();
   const sorted = [...pays].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   tbl.innerHTML = `<table>
-    <thead><tr><th>Payee</th><th>Description</th><th>Amount</th><th>Date</th><th>Status</th>${isMaster()?'<th></th>':''}</tr></thead>
+    <thead><tr><th>Payee</th><th>Description</th><th>Amount</th><th>Date</th><th>Status</th>${canManagePayments?'<th></th>':''}</tr></thead>
     <tbody>${sorted.map(p=>`<tr>
       <td><strong>${esc(p.payee)}</strong></td>
       <td style="color:var(--text-muted)">${esc(p.description||'—')}</td>
       <td><strong>${money(p.amount)}</strong></td>
       <td style="color:var(--text-muted)">${p.date?fmtDate(p.date):'—'}</td>
       <td><span class="badge ${p.status==='Paid'?'badge-paid':'badge-owed'}">${esc(p.status)}</span></td>
-      ${isMaster()?`<td class="td-actions">${p.status==='Owed'?`<button class="btn btn-sm btn-secondary mark-paid" data-id="${esc(p.id)}">✓ Mark Paid</button>`:''}<button class="icon-btn del-pay" data-id="${esc(p.id)}" style="color:var(--red)">${ICO.trash}</button></td>`:''}
+      ${canManagePayments?`<td class="td-actions">${p.status==='Owed'?`<button class="btn btn-sm btn-secondary mark-paid" data-id="${esc(p.id)}">✓ Mark Paid</button>`:''}<button class="icon-btn del-pay" data-id="${esc(p.id)}" style="color:var(--red)">${ICO.trash}</button></td>`:''}
     </tr>`).join('')}</tbody>
   </table>`;
 }
 
 document.getElementById('add-pay-btn').addEventListener('click', () => {
   const today = new Date().toISOString().split('T')[0];
-  const teamOpts = Object.values(TEAM).map(c=>`<option>${esc(c.displayName)}</option>`).join('');
+  const payeeField = isAndrew()
+    ? `<input id="py-payee" type="text" value="Andrew" readonly>`
+    : `<input id="py-payee" type="text" list="payee-list" placeholder="Contractor name"><datalist id="payee-list">${Object.values(TEAM).map(c=>`<option>${esc(c.displayName)}</option>`).join('')}</datalist>`;
+
   openModal('Add Payment', `
     <div class="fg-row">
-      <div class="fg"><label>Payee *</label><input id="py-payee" type="text" list="payee-list" placeholder="Contractor name"><datalist id="payee-list">${teamOpts}</datalist></div>
+      <div class="fg"><label>Payee *</label>${payeeField}</div>
       <div class="fg"><label>Amount ($) *</label><input id="py-amt" type="number" min="0" step="0.01" placeholder="0.00"></div>
     </div>
     <div class="fg"><label>Description</label><input id="py-desc" type="text" placeholder="e.g. Week 3 labour"></div>
@@ -861,10 +859,18 @@ document.getElementById('add-pay-btn').addEventListener('click', () => {
     </div>
     <div class="form-foot"><button class="btn btn-secondary do-cancel">Cancel</button><button class="btn btn-primary do-submit">Add Payment</button></div>
   `, () => run(async () => {
-    const payee=document.getElementById('py-payee').value.trim(), amt=document.getElementById('py-amt').value;
+    const payee = isAndrew() ? 'Andrew' : document.getElementById('py-payee').value.trim();
+    const amt = document.getElementById('py-amt').value;
     if (!payee) { toast('Please enter a payee name.'); return; }
     if (!amt)   { toast('Please enter an amount.'); return; }
-    await dbInsert('payments', { id:uid(), payee, description:document.getElementById('py-desc').value.trim(), amount:parseFloat(amt), date:document.getElementById('py-date').value, status:document.getElementById('py-status').value });
+    await dbInsert('payments', {
+      id:uid(),
+      payee,
+      description:document.getElementById('py-desc').value.trim(),
+      amount:parseFloat(amt),
+      date:document.getElementById('py-date').value,
+      status:document.getElementById('py-status').value
+    });
     await renderPayments(); await renderTeam(); closeModal(); toast('Payment added!');
   }));
 });
@@ -876,9 +882,6 @@ document.getElementById('pay-tbl').addEventListener('click', e => {
   if (del) { if (!confirm('Delete this payment entry?')) return; run(async () => { await dbDelete('payments',del.dataset.id); await renderPayments(); await renderTeam(); toast('Payment deleted.'); }); }
 });
 
-/* ════════════════════════════════════════════════════════════
-   MATERIALS
-   ════════════════════════════════════════════════════════════ */
 async function renderMats() {
   const [mats, rooms] = await Promise.all([dbLoad('materials'), dbLoad('rooms')]);
   const wrap = document.getElementById('mats-wrap');
@@ -927,9 +930,6 @@ document.getElementById('mats-wrap').addEventListener('click', e => {
   if (del) { run(async () => { await dbDelete('materials',del.dataset.id); await renderMats(); toast('Item removed.'); }); }
 });
 
-/* ════════════════════════════════════════════════════════════
-   PHOTOS
-   ════════════════════════════════════════════════════════════ */
 async function renderPhotos() {
   const [photos, rooms] = await Promise.all([dbLoad('photos'), dbLoad('rooms')]);
   const rMap = Object.fromEntries(rooms.map(r=>[r.id,r.name]));
@@ -994,12 +994,17 @@ document.getElementById('photos-grid').addEventListener('click', e => {
   if (del && confirm('Delete this photo?')) { run(async () => { await dbDelete('photos',del.dataset.id); await renderPhotos(); toast('Photo deleted.'); }); }
 });
 
-/* ════════════════════════════════════════════════════════════
-   INIT
-   ════════════════════════════════════════════════════════════ */
 async function renderAll() {
-  if (isMaster()) {
-    await Promise.all([renderRooms(), renderTasks(), renderTeam(), renderPayments(), renderMats(), renderPhotos(), syncRoomSelects()]);
+  if (hasFullAccess()) {
+    await Promise.all([
+      renderRooms(),
+      renderTasks(),
+      renderTeam(),
+      renderPayments(),
+      renderMats(),
+      renderPhotos(),
+      syncRoomSelects()
+    ]);
   } else {
     await Promise.all([renderTeam(), renderPayments()]);
   }
